@@ -4,16 +4,20 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.coolweather.android.gson.Air;
 import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Suggestion;
@@ -35,6 +39,8 @@ public class WeatherActivity extends AppCompatActivity {
     private String cityName = "未知城市";
     private String weatherId;
 
+    private ImageView bingPicImg;
+
     private ScrollView weatherLayout;
     private TextView titleCity;
     private TextView titleUpdateTime;
@@ -50,9 +56,15 @@ public class WeatherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (Build.VERSION.SDK_INT >=21) {
+            View decorView = getWindow().getDecorView();
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
         setContentView(R.layout.activity_weather);
         //初始化各个控件
 
+        bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
         titleCity = (TextView) findViewById(R.id.title_city);
         titleUpdateTime = (TextView) findViewById(R.id.title_update_time);
@@ -66,6 +78,7 @@ public class WeatherActivity extends AppCompatActivity {
         suggestionText2 = (TextView) findViewById(R.id.suggestion_text2);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String bingPic = prefs.getString("bing_pic2", null);
         String weatherString = prefs.getString("weather2", null);
         String airString = prefs.getString("air2", null);
         String WarningString = prefs.getString("warning2", null);
@@ -75,9 +88,10 @@ public class WeatherActivity extends AppCompatActivity {
 
 
         if (weatherString != null) {
-            Log.d(TAG, "onCreate: 非空");
+            Log.d(TAG, "onCreate: 存储非空");
+            loadBingPic();
             Weather weather = Utility.handleWeatherResponse(weatherString);
-            weather.cityName = prefs.getString("city_name", "从存储中没找到城市名");
+            weather.cityName = prefs.getString("city_name", null);
             Air air = Utility.handleAirResponse(airString);
             Warning warning = Utility.handleWaringResponse(WarningString);
             Suggestion suggestion = Utility.handleSuggestionResponse(SuggestionString);
@@ -90,6 +104,7 @@ public class WeatherActivity extends AppCompatActivity {
             showForecastInfo(forecasts);
 
         } else {
+            loadBingPic();
             weatherLayout.setVisibility(View.INVISIBLE);
             weatherId = getIntent().getStringExtra("weather_id").substring(2);
             cityName = getIntent().getStringExtra("city_name");
@@ -108,7 +123,11 @@ public class WeatherActivity extends AppCompatActivity {
 
     }
 
-
+    private void loadBingPic() {
+        String url = "https://www.bing.com/th?id=OHR.StorrRocks_ZH-CN4956679462_1920x1080.jpg";
+        Glide.with(WeatherActivity.this).load(url).into(bingPicImg);
+        Log.d(TAG, "loadBingPic: 背景图片加载");
+    }
 
 
     /**
