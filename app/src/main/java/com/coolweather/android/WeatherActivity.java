@@ -36,8 +36,8 @@ import okhttp3.Response;
 public class WeatherActivity extends AppCompatActivity {
     private static final String TAG = "WeatherActivity";
 
-    private String cityName = "未知城市";
     private String weatherId;
+    private String cityName;
 
     private ImageView bingPicImg;
 
@@ -78,12 +78,11 @@ public class WeatherActivity extends AppCompatActivity {
         suggestionText2 = (TextView) findViewById(R.id.suggestion_text2);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String bingPic = prefs.getString("bing_pic2", null);
-        String weatherString = prefs.getString("weather2", null);
-        String airString = prefs.getString("air2", null);
-        String WarningString = prefs.getString("warning2", null);
-        String SuggestionString = prefs.getString("suggestion2", null);
-        String forecastString = prefs.getString("forecast2", null);
+        String weatherString = prefs.getString("weather", null);
+        String airString = prefs.getString("air", null);
+        String WarningString = prefs.getString("warning", null);
+        String SuggestionString = prefs.getString("suggestion", null);
+        String forecastString = prefs.getString("forecasts", null);
 
 
 
@@ -176,7 +175,7 @@ public class WeatherActivity extends AppCompatActivity {
      * 处理Weather实体类中的数据
      */
     private void showWeatherInfo(Weather weather) {
-        String cityName = this.cityName;
+        String cityName = weather.cityName;
         String updateTime = weather.updateTime;
         String obsTime = weather.now.obsTime;
         String temp = weather.now.temp;

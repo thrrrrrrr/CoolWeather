@@ -141,8 +141,9 @@ public class Utility {
 
     public static List<Forecast> handleForecastResponse(String responseText) {
         try {
-            String response = new JSONObject(responseText).getJSONArray("daily").toString();
-            return new Gson().fromJson(response, new TypeToken<List<Forecast>>(){}.getType());
+            JSONObject jsonObject = new JSONObject(responseText);
+            String daily = jsonObject.getJSONArray("daily").toString();
+            return new Gson().fromJson(daily, new TypeToken<List<Forecast>>(){}.getType());
         } catch (JSONException e) {
             e.printStackTrace();
         }
