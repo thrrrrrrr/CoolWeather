@@ -11,4 +11,15 @@ public class Forecast {
     public String textDay;
 
     public String textNight;
+
+    @Override
+    public String toString() {
+        return "Forecast{" +
+                "fxDate='" + fxDate + '\'' +
+                ", tempMax='" + tempMax + '\'' +
+                ", tempMin='" + tempMin + '\'' +
+                ", textDay='" + textDay + '\'' +
+                ", textNight='" + textNight + '\'' +
+                '}';
+    }
 }

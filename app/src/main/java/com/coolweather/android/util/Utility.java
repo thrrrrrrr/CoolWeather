@@ -1,12 +1,15 @@
 package com.coolweather.android.util;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.coolweather.android.db.City;
 import com.coolweather.android.db.County;
 import com.coolweather.android.db.Province;
 import com.coolweather.android.gson.Air;
+import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Suggestion;
+import com.coolweather.android.gson.SuggestionItem;
 import com.coolweather.android.gson.Warning;
 import com.coolweather.android.gson.Weather;
 import com.google.gson.Gson;
@@ -127,8 +130,19 @@ public class Utility {
 
     public static Suggestion handleSuggestionResponse(String responseText) {
         try {
-            String response = new JSONObject(responseText).getJSONArray("daliy").toString();
-            return new Gson().fromJson(response, new TypeToken<List<Suggestion>>(){}.getType());
+            String response1 = new JSONObject(responseText).getJSONArray("daily").getJSONObject(0).toString();
+            String response2 = new JSONObject(responseText).getJSONArray("daily").getJSONObject(1).toString();
+            return new Suggestion(new Gson().fromJson(response1, SuggestionItem.class), new Gson().fromJson(response2, SuggestionItem.class));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static List<Forecast> handleForecastResponse(String responseText) {
+        try {
+            String response = new JSONObject(responseText).getJSONArray("daily").toString();
+            return new Gson().fromJson(response, new TypeToken<List<Forecast>>(){}.getType());
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -9,22 +9,21 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.textservice.SuggestionsInfo;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.coolweather.android.gson.Air;
+import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Suggestion;
 import com.coolweather.android.gson.Warning;
 import com.coolweather.android.gson.Weather;
 import com.coolweather.android.util.HttpUtil;
 import com.coolweather.android.util.Utility;
 
-import org.w3c.dom.Text;
-
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -45,6 +44,8 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView aqiText;
     private TextView pm25Text;
     private TextView warningText;
+    private TextView suggestionText1;
+    private TextView suggestionText2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,12 +62,16 @@ public class WeatherActivity extends AppCompatActivity {
         aqiText = (TextView) findViewById(R.id.aqi_text);
         pm25Text = (TextView) findViewById(R.id.pm25_text);
         warningText = (TextView) findViewById(R.id.warning_text);
+        suggestionText1 = (TextView) findViewById(R.id.suggestion_text1);
+        suggestionText2 = (TextView) findViewById(R.id.suggestion_text2);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = prefs.getString("weather2", null);
         String airString = prefs.getString("air2", null);
         String WarningString = prefs.getString("warning2", null);
         String SuggestionString = prefs.getString("suggestion2", null);
+        String forecastString = prefs.getString("forecast2", null);
+
 
 
         if (weatherString != null) {
@@ -76,12 +81,13 @@ public class WeatherActivity extends AppCompatActivity {
             Air air = Utility.handleAirResponse(airString);
             Warning warning = Utility.handleWaringResponse(WarningString);
             Suggestion suggestion = Utility.handleSuggestionResponse(SuggestionString);
+            List<Forecast> forecasts = Utility.handleForecastResponse(forecastString);
 
             showWeatherInfo(weather);
             showAirInfo(air);
             showWarningInfo(warning);
-            showSuggestion(suggestion);
-//            showForecastInfo(forecast);
+            showSuggestionInfo(suggestion);
+            showForecastInfo(forecasts);
 
         } else {
             weatherLayout.setVisibility(View.INVISIBLE);
@@ -91,7 +97,7 @@ public class WeatherActivity extends AppCompatActivity {
             requestAir(weatherId);
             requestWarning(weatherId);
             requestSuggestion(weatherId);
-//            requestForecast(weatherId);
+            requestForecasts(weatherId);
 
 
             Log.d(TAG, "showWeatherInfo: 调用展示信息");
@@ -118,7 +124,7 @@ public class WeatherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WeatherActivity.this, "请检查网络", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "run: 网络请求的时候失败");
                     }
                 });
@@ -138,7 +144,7 @@ public class WeatherActivity extends AppCompatActivity {
                             weather.cityName = cityName;
                             showWeatherInfo(weather);
                         } else {
-                            Toast.makeText(WeatherActivity.this, "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(WeatherActivity.this, "请检查网络", Toast.LENGTH_SHORT).show();
                             Log.d(TAG, "run: 请求成功但是json解析中失败" + weather);
                         }
                     }
@@ -162,24 +168,9 @@ public class WeatherActivity extends AppCompatActivity {
         String humidity = weather.now.humidity;
 
         titleCity.setText(cityName);
-        titleUpdateTime.setText(obsTime);
+        titleUpdateTime.setText((obsTime.substring(0, obsTime.indexOf("+")).replace("T", " ")));
         degreeText.setText(temp);
         weatherInfoText.setText(text);
-
-        forecastLayout.removeAllViews();
-        //天气预报，循环遍历
-        View view = LayoutInflater.from(this).inflate(R.layout.forecase_item, forecastLayout, false);
-        TextView dataText = (TextView) view.findViewById(R.id.data_text);
-        TextView infoText = (TextView) view.findViewById(R.id.info_text);
-        TextView maxText = (TextView) view.findViewById(R.id.max_text);
-        TextView minText = (TextView) view.findViewById(R.id.min_text);
-        dataText.setText("20200101");
-        infoText.setText("晴");
-        maxText.setText("10");
-        minText.setText("1");
-        forecastLayout.addView(view);
-
-        //生活建议
 
     }
 
@@ -197,7 +188,6 @@ public class WeatherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this, "获取空气信息失败", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "run: 网络请求的时候失败");
                     }
                 });
@@ -215,8 +205,7 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.apply();
                             showAirInfo(air);
                         } else {
-                            Toast.makeText(WeatherActivity.this, "获取空气信息失败", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "run: 请求成功但是json解析中失败" + air);
+                            Log.d(TAG, "run: 请求空气成功但是json解析中失败" + air);
                         }
                     }
                 });
@@ -243,7 +232,6 @@ public class WeatherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this, "获取警告信息失败", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "run: 网络请求的时候失败");
                     }
                 });
@@ -261,8 +249,7 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.apply();
                             showWarningInfo(warning);
                         } else {
-                            Toast.makeText(WeatherActivity.this, "获取警告信息失败", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "run: 请求成功但是json解析中失败" + warning);
+                            Log.d(TAG, "run: 请求警告成功但是json解析中失败" + warning);
                         }
                     }
                 });
@@ -271,15 +258,15 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     private void showWarningInfo(Warning warning) {
-        warningText.setText(warning.text);
         if (warning.text == null || warning.text == "") {
             warningText.setVisibility(View.GONE);
         }
+        warningText.setText("灾害预警：" + warning.text);
     }
 
     private void requestSuggestion(String weatherId) {
-        String weatherUrl = "https://devapi.qweather.com/v7/indices/1d?type=0&location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
-        Log.d(TAG, "requestWeather: 请求警告信息" + weatherUrl);
+        String weatherUrl = "https://devapi.qweather.com/v7/indices/1d?type=1,15&location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        Log.d(TAG, "requestWeather: 请求建议信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -287,7 +274,6 @@ public class WeatherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(WeatherActivity.this, "获取警告信息失败", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "run: 网络请求的时候失败");
                     }
                 });
@@ -295,23 +281,92 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String responseText = response.body().string();
-                Warning warning = Utility.handleWaringResponse(responseText);
+                Suggestion suggestion = Utility.handleSuggestionResponse(responseText);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (warning != null) {
+                        if (suggestion != null) {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                            editor.putString("warning", responseText);
+                            editor.putString("suggestion", responseText);
                             editor.apply();
-                            showWarningInfo(warning);
+                            showSuggestionInfo(suggestion);
                         } else {
-                            Toast.makeText(WeatherActivity.this, "获取警告信息失败", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "run: 请求成功但是json解析中失败" + warning);
+                            Log.d(TAG, "run: 请求建议成功但是json解析中失败" + suggestion);
                         }
                     }
                 });
             }
         });
+    }
+
+    private void showSuggestionInfo(Suggestion suggestion) {
+        if (suggestion.suggestion1.text == null || suggestion.suggestion1.text == "") {
+            suggestionText1.setVisibility(View.GONE);
+        }
+        if (suggestion.suggestion2.text == null || suggestion.suggestion2.text == "") {
+            suggestionText1.setVisibility(View.GONE);
+        }
+        suggestionText1.setText("运动建议：" + suggestion.suggestion1.text);
+        suggestionText2.setText("交通建议：" + suggestion.suggestion2.text);
+    }
+
+    private void requestForecasts(String weatherId) {
+        String weatherUrl = "https://devapi.qweather.com/v7/weather/7d?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        Log.d(TAG, "requestWeather: 请求预报信息" + weatherUrl);
+        HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "run: 网络请求的时候失败");
+                    }
+                });
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+                List<Forecast> forecasts = Utility.handleForecastResponse(responseText);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (forecasts != null) {
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                            editor.putString("forecasts", responseText);
+                            editor.apply();
+                            showForecastInfo(forecasts);
+                        } else {
+                            Log.d(TAG, "run: 请求预报成功但是json解析中失败" + forecasts);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void showForecastInfo(List<Forecast> forecasts) {
+        forecastLayout.removeAllViews();
+        //天气预报，循环遍历
+        for (Forecast forecast : forecasts) {
+            View view = LayoutInflater.from(this).inflate(R.layout.forecase_item, forecastLayout, false);
+            TextView dataText = (TextView) view.findViewById(R.id.data_text);
+            TextView infoText = (TextView) view.findViewById(R.id.info_text);
+            TextView maxText = (TextView) view.findViewById(R.id.max_text);
+            TextView minText = (TextView) view.findViewById(R.id.min_text);
+
+            dataText.setText(forecast.fxDate);
+            if (forecast.textDay.equals(forecast.textNight)) {
+                infoText.setText(forecast.textDay);
+            } else {
+                infoText.setText(forecast.textDay+"转"+forecast.textNight);
+            }
+            maxText.setText(forecast.tempMax);
+            minText.setText(forecast.tempMin);
+            forecastLayout.addView(view);
+        }
+
+
     }
 }
 

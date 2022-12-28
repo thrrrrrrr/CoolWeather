@@ -19,21 +19,23 @@
         android:id="@+id/warning_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="建议建议建议建议建议建议建议建议建议建议建议"
+        android:text="灾害预警："
         android:layout_margin="15dp"
         android:textColor="#fff" />
 
     <TextView
+        android:id="@+id/suggestion_text1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="建议建议建议建议建议建议建议建议建议建议建议"
+        android:text="运动建议："
         android:layout_margin="15dp"
         android:textColor="#fff" />
 
     <TextView
+        android:id="@+id/suggestion_text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="建议建议建议建议建议建议建议建议建议建议建议"
+        android:text="交通建议："
         android:layout_margin="15dp"
         android:textColor="#fff" />
 
