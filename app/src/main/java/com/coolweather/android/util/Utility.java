@@ -5,10 +5,18 @@ import android.text.TextUtils;
 import com.coolweather.android.db.City;
 import com.coolweather.android.db.County;
 import com.coolweather.android.db.Province;
+import com.coolweather.android.gson.Air;
+import com.coolweather.android.gson.Suggestion;
+import com.coolweather.android.gson.Warning;
+import com.coolweather.android.gson.Weather;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class Utility {
     /**
@@ -77,5 +85,53 @@ public class Utility {
             }
         }
         return false;
+    }
+
+
+    /**
+     * 处理json数据，返回weather对象
+     */
+    public static Weather handleWeatherResponse(String responseText) {
+        try {
+            Weather weather =  new Gson().fromJson(responseText, Weather.class);
+            return weather;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+    public static Air handleAirResponse(String responseText) {
+        try {
+            String response = new JSONObject(responseText).getJSONObject("now").toString();
+            return new Gson().fromJson(response, Air.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public static Warning handleWaringResponse(String responseText) {
+        try {
+            String response = new JSONObject(responseText).getJSONArray("warning").getJSONObject(0).toString();
+            return new Gson().fromJson(response, Warning.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Suggestion handleSuggestionResponse(String responseText) {
+        try {
+            String response = new JSONObject(responseText).getJSONArray("daliy").toString();
+            return new Gson().fromJson(response, new TypeToken<List<Suggestion>>(){}.getType());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

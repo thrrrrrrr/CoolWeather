@@ -2,6 +2,7 @@ package com.coolweather.android;
 
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -112,6 +113,14 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                } else if (currentLevel == LEVEL_COUNTY) {
+                    String weatherId = countyList.get(position).getWeatherId();
+                    String cityName = countyList.get(position).getCountyName();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_id", weatherId);
+                    intent.putExtra("city_name", cityName);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -229,6 +238,14 @@ public class ChooseAreaFragment extends Fragment {
                             }
                         }
                     });
+                } else { //返回结果是空
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            closeProgressDialog();
+                            Toast.makeText(getContext(), "网络故障，请使用搜索功能", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
 
@@ -238,7 +255,7 @@ public class ChooseAreaFragment extends Fragment {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "网络故障，请使用搜索功能", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
