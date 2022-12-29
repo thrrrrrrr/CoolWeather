@@ -118,7 +118,7 @@ public class WeatherActivity extends AppCompatActivity {
         } else {
             loadBingPic();
             weatherLayout.setVisibility(View.INVISIBLE);
-            weatherId = getIntent().getStringExtra("weather_id").substring(2);
+            weatherId = getIntent().getStringExtra("weather_id");
             cityName = getIntent().getStringExtra("city_name");
             requestWeather(weatherId, cityName);
             requestAir(weatherId);
@@ -297,6 +297,7 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.apply();
                             showWarningInfo(warning);
                         } else {
+                            warningText.setVisibility(View.GONE);
                             Log.d(TAG, "run: 请求警告成功但是json解析中失败" + warning);
                         }
                     }
@@ -310,6 +311,7 @@ public class WeatherActivity extends AppCompatActivity {
             warningText.setVisibility(View.GONE);
         }
         warningText.setText("灾害预警：" + warning.text);
+        warningText.setVisibility(View.VISIBLE);
     }
 
     public void requestSuggestion(String weatherId) {

@@ -3,7 +3,9 @@ package com.coolweather.android;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +27,8 @@ import com.coolweather.android.db.Province;
 import com.coolweather.android.util.HttpUtil;
 import com.coolweather.android.util.Utility;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
 
 import java.io.IOException;
@@ -114,25 +118,65 @@ public class ChooseAreaFragment extends Fragment {
                     selectedCity = cityList.get(position);
                     queryCounties();
                 } else if (currentLevel == LEVEL_COUNTY) {
-                    String weatherId = countyList.get(position).getWeatherId();
-                    String cityName = countyList.get(position).getCountyName();
-                    if (getActivity() instanceof MainActivity) {
-                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
-                        intent.putExtra("weather_id", weatherId);
-                        intent.putExtra("city_name", cityName);
-                        startActivity(intent);
-                        getActivity().finish();
-                    } else if (getActivity() instanceof WeatherActivity) {
-                        WeatherActivity activity = (WeatherActivity) getActivity();
-                        activity.drawerLayout.closeDrawers();
-                        activity.swipeRefresh.setRefreshing(true);
-                        activity.requestWeather(weatherId, cityName);
-                        activity.requestAir(weatherId);
-                        activity.requestWarning(weatherId);
-                        activity.requestSuggestion(weatherId);
-                        activity.requestForecasts(weatherId);
-                        activity.swipeRefresh.setRefreshing(false);
-                    }
+                    String countyName = countyList.get(position).getCountyName();
+                    String cityName = selectedCity.getCityName();
+                    String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+cityName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+                    Log.d(TAG, "onItemClick: 查询WeatherId" + address);
+                    HttpUtil.sendOkHttpRequest(address, new Callback() {
+                        @Override
+                        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        @Override
+                        public void onResponse(@NonNull Call call, @NonNull Response response) {
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (getActivity() instanceof MainActivity) {
+                                        String weatherId = null;
+                                        String countyName = null;
+                                        try {
+                                            JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
+                                            countyName = object.getString("name") + " • " + object.getString("adm2");
+                                            weatherId = object.getString("id");
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                                        intent.putExtra("weather_id", weatherId);
+                                        intent.putExtra("city_name", countyName);
+                                        startActivity(intent);
+                                        getActivity().finish();
+                                    }else if (getActivity() instanceof WeatherActivity) {
+                                        String weatherId = null;
+                                        String countyName = null;
+                                        try {
+                                            JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
+                                            countyName = object.getString("name") + "·" + object.getString("adm2");
+                                            weatherId = object.getString("id");
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                        WeatherActivity activity = (WeatherActivity) getActivity();
+                                        activity.drawerLayout.closeDrawers();
+                                        activity.swipeRefresh.setRefreshing(true);
+                                        activity.requestWeather(weatherId, countyName);
+                                        activity.requestAir(weatherId);
+                                        activity.requestWarning(weatherId);
+                                        activity.requestSuggestion(weatherId);
+                                        activity.requestForecasts(weatherId);
+                                        activity.swipeRefresh.setRefreshing(false);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
                 }
             }
         });
@@ -167,7 +211,7 @@ public class ChooseAreaFragment extends Fragment {
             listView.setSelection(0);
             currentLevel = LEVEL_PROVINCE;
         } else {
-            String address = "http://guolin.tech/api/china";
+            String address = "https://www.mxnzp.com/api/address/v3/list/province?app_id=ynkzaprwopl9hqri&app_secret=VHJSb2VBeEcvaEJ1T0FwSVpmSTlRZz09";
             queryFromServer(address, "province");
         }
     }
@@ -190,7 +234,7 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel = LEVEL_CITY;
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode;
+            String address = "https://www.mxnzp.com/api/address/v3/list/city?provinceCode=" + provinceCode+"&app_id=ynkzaprwopl9hqri&app_secret=VHJSb2VBeEcvaEJ1T0FwSVpmSTlRZz09";
             Log.d(TAG, "queryCities: " + address);
             queryFromServer(address, "city");
         }
@@ -215,7 +259,7 @@ public class ChooseAreaFragment extends Fragment {
         } else {
             int provinceCode = selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
-            String address = "http://guolin.tech/api/china/" + provinceCode + "/" + cityCode;
+            String address = "https://www.mxnzp.com/api/address/v3/list/area?cityCode="+cityCode+"&provinceCode="+provinceCode+"&&app_id=ynkzaprwopl9hqri&app_secret=VHJSb2VBeEcvaEJ1T0FwSVpmSTlRZz09";
             Log.d(TAG, "queryCounties: " + address);
             queryFromServer(address, "county");
         }
