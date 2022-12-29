@@ -8,6 +8,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.transition.Slide;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -81,7 +82,6 @@ public class WeatherActivity extends AppCompatActivity {
         bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
         titleCity = (TextView) findViewById(R.id.title_city);
-        titleUpdateTime = (TextView) findViewById(R.id.title_update_time);
         degreeText = (TextView) findViewById(R.id.degree_text);
         weatherInfoText = (TextView) findViewById(R.id.weather_info_text);
         forecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
@@ -92,20 +92,25 @@ public class WeatherActivity extends AppCompatActivity {
         suggestionText2 = (TextView) findViewById(R.id.suggestion_text2);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather1", null);
-        String airString = prefs.getString("air1", null);
-        String WarningString = prefs.getString("warning1", null);
-        String SuggestionString = prefs.getString("suggestion1", null);
-        String forecastString = prefs.getString("forecasts1", null);
-        weatherId = prefs.getString("weatherId1", null);
+        String weatherString = prefs.getString("weather", null);
+        String airString = prefs.getString("air", null);
+        String WarningString = prefs.getString("warning", null);
+        String SuggestionString = prefs.getString("suggestion", null);
+        String forecastString = prefs.getString("forecasts", null);
+        weatherId = prefs.getString("weatherId", null);
 
         if (weatherString != null) {
+//            Intent intent = new Intent(this, AutoUpdateService.class);
+//            startService(intent);
             Log.d(TAG, "onCreate: 存储非空");
             loadBingPic();
             Weather weather = Utility.handleWeatherResponse(weatherString);
             weather.cityName = prefs.getString("city_name", null);
             Air air = Utility.handleAirResponse(airString);
-            Warning warning = Utility.handleWaringResponse(WarningString);
+            Warning warning = null;
+            if (!WarningString.equals("")){
+                warning = Utility.handleWaringResponse(WarningString);
+            }
             Suggestion suggestion = Utility.handleSuggestionResponse(SuggestionString);
             List<Forecast> forecasts = Utility.handleForecastResponse(forecastString);
 
@@ -116,7 +121,8 @@ public class WeatherActivity extends AppCompatActivity {
             showForecastInfo(forecasts);
 
         } else {
-            loadBingPic();
+//            Intent intent = new Intent(this, AutoUpdateService.class);
+//            startService(intent);
             weatherLayout.setVisibility(View.INVISIBLE);
             weatherId = getIntent().getStringExtra("weather_id");
             cityName = getIntent().getStringExtra("city_name");
@@ -139,6 +145,9 @@ public class WeatherActivity extends AppCompatActivity {
                 requestSuggestion(weatherId);
                 requestForecasts(weatherId);
                 swipeRefresh.setRefreshing(false);
+                Toast mToast = Toast.makeText(WeatherActivity.this, "", Toast.LENGTH_LONG);
+                mToast.setText("刷新成功");
+                mToast.show();
             }
         });
 
@@ -152,7 +161,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     private void loadBingPic() {
-        String url = "https://www.bing.com/th?id=OHR.StorrRocks_ZH-CN4956679462_1920x1080.jpg";
+        String url = "https://www.pengqi.club/api/bing";
         Glide.with(WeatherActivity.this).load(url).into(bingPicImg);
         Log.d(TAG, "loadBingPic: 背景图片加载");
     }
@@ -199,6 +208,7 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
+        loadBingPic();
     }
 
     /**
@@ -216,7 +226,9 @@ public class WeatherActivity extends AppCompatActivity {
         String humidity = weather.now.humidity;
 
         titleCity.setText(cityName);
-        titleUpdateTime.setText((updateTime.substring(0, updateTime.indexOf("+")).replace("T", " ")));
+        Toast mToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
+        mToast.setText("数据来自:" + updateTime.substring(0, updateTime.indexOf("+")).replace("T", " "));
+        mToast.show();
         degreeText.setText(temp);
         weatherInfoText.setText(text);
 
@@ -297,6 +309,9 @@ public class WeatherActivity extends AppCompatActivity {
                             editor.apply();
                             showWarningInfo(warning);
                         } else {
+                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+                            editor.putString("warning", "");
+                            editor.apply();
                             warningText.setVisibility(View.GONE);
                             Log.d(TAG, "run: 请求警告成功但是json解析中失败" + warning);
                         }
@@ -307,11 +322,12 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void showWarningInfo(Warning warning) {
-        if (warning.text == null || warning.text == "") {
+        if (warning == null) {
             warningText.setVisibility(View.GONE);
+        }else{
+            warningText.setText("灾害预警：" + warning.text);
+            warningText.setVisibility(View.VISIBLE);
         }
-        warningText.setText("灾害预警：" + warning.text);
-        warningText.setVisibility(View.VISIBLE);
     }
 
     public void requestSuggestion(String weatherId) {

@@ -30,7 +30,63 @@
             android:layout_centerVertical="true"
             android:background="@drawable/ic_back"/>
 
+        <Button
+            android:id="@+id/search_button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_search"/>
+
     </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/search_title"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="30dp"
+        android:visibility="gone">
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/province_text"
+            android:layout_weight="1"
+            android:hint="省"
+            android:layout_marginLeft="10dp"
+            android:textColor="#000"/>
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/city_text"
+            android:layout_weight="1"
+            android:hint="市"
+            android:textColor="#000"/>
+
+        <EditText
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/county_text"
+            android:layout_weight="1"
+            android:hint="区(县)"
+            android:textColor="#000"/>
+
+        <Button
+            android:id="@+id/get_search"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_search2"/>
+
+    </LinearLayout>
 
     <ListView
         android:id="@+id/list_view"

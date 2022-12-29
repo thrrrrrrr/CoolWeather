@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +50,15 @@ public class ChooseAreaFragment extends Fragment {
     public static final int LEVEL_CITY = 1;
 
     public static final int LEVEL_COUNTY = 2;
+    public static final int LEVEL_SEARCH = 3;
+
+    private Button searchButton;
+    private LinearLayout searchTitle;
+    private Button getSearchButton;
+
+    private EditText province;
+    private EditText city;
+    private EditText county;
 
     private ProgressDialog progressDialog;
 
@@ -97,6 +108,12 @@ public class ChooseAreaFragment extends Fragment {
         View view = inflater.inflate(R.layout.choose_area, container, false);
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (Button) view.findViewById(R.id.back_button);
+        searchButton = (Button) view.findViewById(R.id.search_button);
+        searchTitle = (LinearLayout) view.findViewById(R.id.search_title);
+        getSearchButton = (Button) view.findViewById(R.id.get_search);
+        province = (EditText) view.findViewById(R.id.province_text);
+        city = (EditText) view.findViewById(R.id.city_text);
+        county = (EditText) view.findViewById(R.id.county_text);
         listView = (ListView) view.findViewById(R.id.list_view);
         adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, dataList);
         listView.setAdapter(adapter);
@@ -119,8 +136,8 @@ public class ChooseAreaFragment extends Fragment {
                     queryCounties();
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String countyName = countyList.get(position).getCountyName();
-                    String cityName = selectedCity.getCityName();
-                    String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+cityName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+                    String provinceName = selectedProvince.getProvinceName();
+                    String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
                     Log.d(TAG, "onItemClick: 查询WeatherId" + address);
                     HttpUtil.sendOkHttpRequest(address, new Callback() {
                         @Override
@@ -138,7 +155,7 @@ public class ChooseAreaFragment extends Fragment {
                                         String countyName = null;
                                         try {
                                             JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
-                                            countyName = object.getString("name") + " • " + object.getString("adm2");
+                                            countyName = object.getString("name") + "•" + object.getString("adm2");
                                             weatherId = object.getString("id");
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -155,7 +172,7 @@ public class ChooseAreaFragment extends Fragment {
                                         String countyName = null;
                                         try {
                                             JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
-                                            countyName = object.getString("name") + "·" + object.getString("adm2");
+                                            countyName = object.getString("name") + "•" + object.getString("adm2");
                                             weatherId = object.getString("id");
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -188,7 +205,92 @@ public class ChooseAreaFragment extends Fragment {
                     queryCities();
                 } else if (currentLevel == LEVEL_CITY) {
                     queryProvinces();
+                } else if (currentLevel == LEVEL_SEARCH) {
+                    queryProvinces();
+                    searchTitle.setVisibility(View.GONE);
+                    listView.setVisibility(View.VISIBLE);
+                    searchButton.setVisibility(View.VISIBLE);
                 }
+            }
+        });
+
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentLevel = LEVEL_SEARCH;
+                titleText.setText("城市搜索");
+                backButton.setVisibility(View.VISIBLE);
+                searchTitle.setVisibility(View.VISIBLE);
+                listView.setVisibility(View.GONE);
+                searchButton.setVisibility(View.GONE);
+            }
+        });
+
+        getSearchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String provinceName = province.getText().toString();
+                String cityName = city.getText().toString();
+                String countyName = county.getText().toString();
+                if (provinceName.equals("") || cityName.equals("") || countyName.equals("")) {
+                    Toast mToast = Toast.makeText(getContext(), "", Toast.LENGTH_LONG);
+                    mToast.setText("请输入完整信息");
+                    mToast.show();
+                }
+                String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+                HttpUtil.sendOkHttpRequest(address, new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        e.printStackTrace();
+                    }
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (getActivity() instanceof MainActivity) {
+                                    String weatherId = null;
+                                    String countyName = null;
+                                    try {
+                                        JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
+                                        countyName = object.getString("name") + "•" + object.getString("adm2");
+                                        weatherId = object.getString("id");
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                                    intent.putExtra("weather_id", weatherId);
+                                    intent.putExtra("city_name", countyName);
+                                    startActivity(intent);
+                                    getActivity().finish();
+                                }else if (getActivity() instanceof WeatherActivity) {
+                                    String weatherId = null;
+                                    String countyName = null;
+                                    try {
+                                        JSONObject object = new JSONObject(response.body().string()).getJSONArray("location").getJSONObject(0);
+                                        countyName = object.getString("name") + "•" + object.getString("adm2");
+                                        weatherId = object.getString("id");
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    WeatherActivity activity = (WeatherActivity) getActivity();
+                                    activity.drawerLayout.closeDrawers();
+                                    activity.swipeRefresh.setRefreshing(true);
+                                    activity.requestWeather(weatherId, countyName);
+                                    activity.requestAir(weatherId);
+                                    activity.requestWarning(weatherId);
+                                    activity.requestSuggestion(weatherId);
+                                    activity.requestForecasts(weatherId);
+                                    activity.swipeRefresh.setRefreshing(false);
+                                }
+                            }
+                        });
+                    }
+                });
             }
         });
 
