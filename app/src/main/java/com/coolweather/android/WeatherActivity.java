@@ -106,6 +106,7 @@ public class WeatherActivity extends AppCompatActivity {
             loadBingPic();
             Weather weather = Utility.handleWeatherResponse(weatherString);
             weather.cityName = prefs.getString("city_name", null);
+            cityName = prefs.getString("city_name", null);
             Air air = Utility.handleAirResponse(airString);
             Warning warning = null;
             if (!WarningString.equals("")){
@@ -139,13 +140,17 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 Log.d(TAG, "onRefresh: 正在下拉刷新");
+                SharedPreferences prefs1 = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                weatherId = prefs1.getString("weatherId", null);
+                cityName = prefs1.getString("city_name", null);
+                Log.d(TAG, "onRefresh: " + weatherId + cityName);
                 requestWeather(weatherId, cityName);
                 requestAir(weatherId);
                 requestWarning(weatherId);
                 requestSuggestion(weatherId);
                 requestForecasts(weatherId);
                 swipeRefresh.setRefreshing(false);
-                Toast mToast = Toast.makeText(WeatherActivity.this, "", Toast.LENGTH_LONG);
+                Toast mToast = Toast.makeText(WeatherActivity.this, "", Toast.LENGTH_SHORT);
                 mToast.setText("刷新成功");
                 mToast.show();
             }
