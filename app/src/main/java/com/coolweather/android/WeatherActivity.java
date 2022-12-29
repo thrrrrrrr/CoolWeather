@@ -2,7 +2,12 @@ package com.coolweather.android;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.transition.Slide;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -11,6 +16,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -40,6 +46,9 @@ public class WeatherActivity extends AppCompatActivity {
     private String cityName;
 
     private ImageView bingPicImg;
+    public SwipeRefreshLayout swipeRefresh;
+    public DrawerLayout drawerLayout;
+    private Button navButton;
 
     private ScrollView weatherLayout;
     private TextView titleCity;
@@ -53,6 +62,7 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView suggestionText1;
     private TextView suggestionText2;
 
+    @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +74,10 @@ public class WeatherActivity extends AppCompatActivity {
         setContentView(R.layout.activity_weather);
         //初始化各个控件
 
+        drawerLayout = (DrawerLayout) findViewById(R.id.draw_layout);
+        navButton = (Button) findViewById(R.id.nav_button);
+        swipeRefresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
+        swipeRefresh.setColorSchemeColors(R.color.white);
         bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
         titleCity = (TextView) findViewById(R.id.title_city);
@@ -78,13 +92,12 @@ public class WeatherActivity extends AppCompatActivity {
         suggestionText2 = (TextView) findViewById(R.id.suggestion_text2);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather", null);
-        String airString = prefs.getString("air", null);
-        String WarningString = prefs.getString("warning", null);
-        String SuggestionString = prefs.getString("suggestion", null);
-        String forecastString = prefs.getString("forecasts", null);
-
-
+        String weatherString = prefs.getString("weather1", null);
+        String airString = prefs.getString("air1", null);
+        String WarningString = prefs.getString("warning1", null);
+        String SuggestionString = prefs.getString("suggestion1", null);
+        String forecastString = prefs.getString("forecasts1", null);
+        weatherId = prefs.getString("weatherId1", null);
 
         if (weatherString != null) {
             Log.d(TAG, "onCreate: 存储非空");
@@ -113,12 +126,28 @@ public class WeatherActivity extends AppCompatActivity {
             requestSuggestion(weatherId);
             requestForecasts(weatherId);
 
-
             Log.d(TAG, "showWeatherInfo: 调用展示信息");
             weatherLayout.setVisibility(View.VISIBLE);
-
-
         }
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d(TAG, "onRefresh: 正在下拉刷新");
+                requestWeather(weatherId, cityName);
+                requestAir(weatherId);
+                requestWarning(weatherId);
+                requestSuggestion(weatherId);
+                requestForecasts(weatherId);
+                swipeRefresh.setRefreshing(false);
+            }
+        });
+
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
 
     }
 
@@ -158,6 +187,7 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
                             editor.putString("weather", responseText);
                             editor.putString("city_name", cityName);
+                            editor.putString("weatherId", weatherId);
                             editor.apply();
                             weather.cityName = cityName;
                             showWeatherInfo(weather);
@@ -174,7 +204,7 @@ public class WeatherActivity extends AppCompatActivity {
     /**
      * 处理Weather实体类中的数据
      */
-    private void showWeatherInfo(Weather weather) {
+    public void showWeatherInfo(Weather weather) {
         String cityName = weather.cityName;
         String updateTime = weather.updateTime;
         String obsTime = weather.now.obsTime;
@@ -186,7 +216,7 @@ public class WeatherActivity extends AppCompatActivity {
         String humidity = weather.now.humidity;
 
         titleCity.setText(cityName);
-        titleUpdateTime.setText((obsTime.substring(0, obsTime.indexOf("+")).replace("T", " ")));
+        titleUpdateTime.setText((updateTime.substring(0, updateTime.indexOf("+")).replace("T", " ")));
         degreeText.setText(temp);
         weatherInfoText.setText(text);
 
@@ -235,12 +265,12 @@ public class WeatherActivity extends AppCompatActivity {
      * 将空气信息上界面
      * @param air
      */
-    private void showAirInfo(@NonNull Air air) {
+    public void showAirInfo(@NonNull Air air) {
         aqiText.setText(air.aqi);
         pm25Text.setText(air.pm2p5);
     }
 
-    private void requestWarning(String weatherId) {
+    public void requestWarning(String weatherId) {
         String weatherUrl = "https://devapi.qweather.com/v7/warning/now?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
         Log.d(TAG, "requestWeather: 请求警告信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
@@ -275,14 +305,14 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void showWarningInfo(Warning warning) {
+    public void showWarningInfo(Warning warning) {
         if (warning.text == null || warning.text == "") {
             warningText.setVisibility(View.GONE);
         }
         warningText.setText("灾害预警：" + warning.text);
     }
 
-    private void requestSuggestion(String weatherId) {
+    public void requestSuggestion(String weatherId) {
         String weatherUrl = "https://devapi.qweather.com/v7/indices/1d?type=1,15&location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
         Log.d(TAG, "requestWeather: 请求建议信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
@@ -317,7 +347,7 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void showSuggestionInfo(Suggestion suggestion) {
+    public void showSuggestionInfo(Suggestion suggestion) {
         if (suggestion.suggestion1.text == null || suggestion.suggestion1.text == "") {
             suggestionText1.setVisibility(View.GONE);
         }
@@ -328,7 +358,7 @@ public class WeatherActivity extends AppCompatActivity {
         suggestionText2.setText("交通建议：" + suggestion.suggestion2.text);
     }
 
-    private void requestForecasts(String weatherId) {
+    public void requestForecasts(String weatherId) {
         String weatherUrl = "https://devapi.qweather.com/v7/weather/7d?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
         Log.d(TAG, "requestWeather: 请求预报信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
@@ -363,7 +393,7 @@ public class WeatherActivity extends AppCompatActivity {
         });
     }
 
-    private void showForecastInfo(List<Forecast> forecasts) {
+    public void showForecastInfo(List<Forecast> forecasts) {
         forecastLayout.removeAllViews();
         //天气预报，循环遍历
         for (Forecast forecast : forecasts) {
