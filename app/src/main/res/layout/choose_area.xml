@@ -54,9 +54,9 @@
         <EditText
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:id="@+id/province_text"
+            android:id="@+id/county_text"
             android:layout_weight="1"
-            android:hint="省"
+            android:hint="区/县(必选)"
             android:layout_marginLeft="10dp"
             android:textColor="#000"/>
 
@@ -66,14 +66,15 @@
             android:id="@+id/city_text"
             android:layout_weight="1"
             android:hint="市"
-            android:textColor="#000"/>
+            android:textColor="#000"
+            android:visibility="gone"/>
 
         <EditText
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:id="@+id/county_text"
+            android:id="@+id/province_text"
             android:layout_weight="1"
-            android:hint="区(县)"
+            android:hint="省/市(可选)"
             android:textColor="#000"/>
 
         <Button
@@ -87,6 +88,19 @@
             android:layout_centerVertical="true"
             android:background="@drawable/ic_search2"/>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/search_title2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="(可搜索国外城市)"
+            android:layout_marginLeft="14dp"
+            android:textColor="#666"/>
     </LinearLayout>
 
     <ListView

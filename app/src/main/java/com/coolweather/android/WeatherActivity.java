@@ -176,7 +176,7 @@ public class WeatherActivity extends AppCompatActivity {
      * 根据天气id请求城市天气信息
      */
     public void requestWeather(final String weatherId, final String cityName) {
-        String weatherUrl = "https://devapi.qweather.com/v7/weather/now?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        String weatherUrl = "https://devapi.qweather.com/v7/weather/now?location="+weatherId+"&key=8a58906e6a1749bba8239533cb3c272b";
         Log.d(TAG, "requestWeather: 请求基本天气信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
@@ -231,8 +231,8 @@ public class WeatherActivity extends AppCompatActivity {
         String humidity = weather.now.humidity;
 
         titleCity.setText(cityName);
-        Toast mToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
-        mToast.setText("数据来自:" + updateTime.substring(0, updateTime.indexOf("+")).replace("T", " "));
+        Toast mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
+        mToast.setText("数据来自:" + updateTime.substring(0, updateTime.indexOf("T")+6).replace("T", " "));
         mToast.show();
         degreeText.setText(temp);
         weatherInfoText.setText(text);
@@ -244,7 +244,7 @@ public class WeatherActivity extends AppCompatActivity {
      * @param weatherId
      */
     public void requestAir(final String weatherId) {
-        String weatherUrl = "https://devapi.qweather.com/v7/air/now?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        String weatherUrl = "https://devapi.qweather.com/v7/air/now?location="+weatherId+"&key=8a58906e6a1749bba8239533cb3c272b";
         Log.d(TAG, "requestWeather: 请求基本空气信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
@@ -288,7 +288,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void requestWarning(String weatherId) {
-        String weatherUrl = "https://devapi.qweather.com/v7/warning/now?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        String weatherUrl = "https://devapi.qweather.com/v7/warning/now?location="+weatherId+"&key=8a58906e6a1749bba8239533cb3c272b";
         Log.d(TAG, "requestWeather: 请求警告信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
@@ -336,7 +336,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void requestSuggestion(String weatherId) {
-        String weatherUrl = "https://devapi.qweather.com/v7/indices/1d?type=1,15&location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        String weatherUrl = "https://devapi.qweather.com/v7/indices/1d?type=1,15&location="+weatherId+"&key=8a58906e6a1749bba8239533cb3c272b";
         Log.d(TAG, "requestWeather: 请求建议信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
@@ -382,7 +382,7 @@ public class WeatherActivity extends AppCompatActivity {
     }
 
     public void requestForecasts(String weatherId) {
-        String weatherUrl = "https://devapi.qweather.com/v7/weather/7d?location="+weatherId+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+        String weatherUrl = "https://devapi.qweather.com/v7/weather/7d?location="+weatherId+"&key=8a58906e6a1749bba8239533cb3c272b";
         Log.d(TAG, "requestWeather: 请求预报信息" + weatherUrl);
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override

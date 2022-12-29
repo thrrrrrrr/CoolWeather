@@ -1,6 +1,7 @@
 package com.coolweather.android;
 
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -54,6 +55,7 @@ public class ChooseAreaFragment extends Fragment {
 
     private Button searchButton;
     private LinearLayout searchTitle;
+    private LinearLayout search_title2;
     private Button getSearchButton;
 
     private EditText province;
@@ -102,6 +104,7 @@ public class ChooseAreaFragment extends Fragment {
      */
     private int currentLevel;
 
+    @SuppressLint("MissingInflatedId")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -110,6 +113,7 @@ public class ChooseAreaFragment extends Fragment {
         backButton = (Button) view.findViewById(R.id.back_button);
         searchButton = (Button) view.findViewById(R.id.search_button);
         searchTitle = (LinearLayout) view.findViewById(R.id.search_title);
+        search_title2 = (LinearLayout) view.findViewById(R.id.search_title2);
         getSearchButton = (Button) view.findViewById(R.id.get_search);
         province = (EditText) view.findViewById(R.id.province_text);
         city = (EditText) view.findViewById(R.id.city_text);
@@ -137,7 +141,7 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_COUNTY) {
                     String countyName = countyList.get(position).getCountyName();
                     String provinceName = selectedProvince.getProvinceName();
-                    String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+                    String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=8a58906e6a1749bba8239533cb3c272b";
                     Log.d(TAG, "onItemClick: 查询WeatherId" + address);
                     HttpUtil.sendOkHttpRequest(address, new Callback() {
                         @Override
@@ -208,6 +212,7 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_SEARCH) {
                     queryProvinces();
                     searchTitle.setVisibility(View.GONE);
+                    search_title2.setVisibility(View.GONE);
                     listView.setVisibility(View.VISIBLE);
                     searchButton.setVisibility(View.VISIBLE);
                 }
@@ -221,6 +226,7 @@ public class ChooseAreaFragment extends Fragment {
                 titleText.setText("城市搜索");
                 backButton.setVisibility(View.VISIBLE);
                 searchTitle.setVisibility(View.VISIBLE);
+                search_title2.setVisibility(View.VISIBLE);
                 listView.setVisibility(View.GONE);
                 searchButton.setVisibility(View.GONE);
             }
@@ -230,14 +236,17 @@ public class ChooseAreaFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String provinceName = province.getText().toString();
-                String cityName = city.getText().toString();
+//                String cityName = city.getText().toString();
                 String countyName = county.getText().toString();
-                if (provinceName.equals("") || cityName.equals("") || countyName.equals("")) {
-                    Toast mToast = Toast.makeText(getContext(), "", Toast.LENGTH_LONG);
-                    mToast.setText("请输入完整信息");
+
+                if (countyName.equals("")) {
+                    Toast mToast = Toast.makeText(getContext(), "", Toast.LENGTH_SHORT);
+                    mToast.setText("请输入区/县");
                     mToast.show();
+                    return;
                 }
-                String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=c630d1ed6b5d4c9499c67325b39a34ee";
+
+                String address = "https://geoapi.qweather.com/v2/city/lookup?location="+countyName+"&adm="+provinceName+"&key=8a58906e6a1749bba8239533cb3c272b";
                 HttpUtil.sendOkHttpRequest(address, new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
@@ -401,7 +410,7 @@ public class ChooseAreaFragment extends Fragment {
                         @Override
                         public void run() {
                             closeProgressDialog();
-                            Toast.makeText(getContext(), "网络故障，请使用搜索功能", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "网络故障，请重试", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -413,7 +422,7 @@ public class ChooseAreaFragment extends Fragment {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(getContext(), "网络故障，请使用搜索功能", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "网络故障，请重试", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
