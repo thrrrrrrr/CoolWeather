@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.coolweather.android.gson.Air;
 import com.coolweather.android.gson.Forecast;
 import com.coolweather.android.gson.Suggestion;
@@ -167,7 +168,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     private void loadBingPic() {
         String url = "https://www.pengqi.club/api/bing";
-        Glide.with(WeatherActivity.this).load(url).into(bingPicImg);
+        Glide.with(WeatherActivity.this).load(url).diskCacheStrategy(DiskCacheStrategy.NONE).into(bingPicImg);
         Log.d(TAG, "loadBingPic: 背景图片加载");
     }
 
